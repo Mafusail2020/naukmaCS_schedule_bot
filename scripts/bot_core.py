@@ -69,7 +69,7 @@ def add_user(msg):
 
     try:
         users.append(user_data)
-    except JSONDecodeError as e:
+    except Exception as e:
         users = [user_data]
     with open("./users_info.json", "w") as file:
         json.dump(users, file)
@@ -105,7 +105,7 @@ def start(msg):
 
     bot.send_message(msg.chat.id, "Hello! This is a schedule bot for CS department of NaUKMA.\n"
                                   "To set your groups permanently, use this command\n"
-                                  "/set_groups <англ> <прогр> <укр> <матан> <дискретка> <алгебра> <номер_тижня>\n"
+                                  "/set_groups <англ> <прогр> <укр> <матан> <дискретка> <алгебра>\n"
                                   "where:\n"
                                   "<англ> - your English group (e.g. 67)(Do NOT type A in the beginning)\n"
                                   "<прогр> - your Programming group (e.g. 3)\n"
@@ -113,6 +113,8 @@ def start(msg):
                                   "<матан> - your Math Analysis group (e.g. 2)\n"
                                   "<дискретка> - your Discrete Math group (e.g. 2)\n"
                                   "<алгебра> - your Algebra group (e.g. 2)\n\n"
+                                  "To get your groups, use the command:\n"
+                                  "/get_groups\n\n"
                                   "To get your schedule, use the command:\n"
                                   "/schedule\n\n"
                                   "To get current date and week number, use the command:\n"
@@ -148,21 +150,53 @@ def remove_user(msg):
     with open("./users_info.json", "w") as file:
         json.dump(users, file)
     bot.send_message(msg.chat.id, f"User '{name}' removed.")
+
+
+@bot.message_handler(commands=["get_groups"])
+def get_groups(msg):
+    with open("./users_info.json", "r") as file:
+        users = json.load(file)
+
+    for user in users:
+        if user["chat_id"] == msg.chat.id:
+            if user["groups_list"] is None:
+                bot.send_message(msg.chat.id, "Your groups are not set. Please set them using /set_groups command.")
+                return
+            bot.send_message(msg.chat.id, f"Your groups are: {user['groups_list']}")
+            return
+
+    bot.send_message(msg.chat.id, "You are not registered. Please use /start command to register.")
     
 
 @bot.message_handler(commands=['set_groups'])
 def set_groups(msg):
-    try:
-        args = msg.text.split()[1:]
-        if len(args) != 6:
-            raise ValueError("Invalid number of arguments")
-        
-        set_user_groups(msg, ' '.join(args))
-        bot.send_message(msg.chat.id, "Your groups have been set successfully!")
-    except Exception as e:
-        bot.send_message(msg.chat.id, f"Error: {str(e)}\nPlease use the command in the correct format:\n"
-                                      "/schedule <англ> <прогр> <укр> <матан> <дискретка> <алгебра>")
-        
+    bot.send_message(msg.chat.id, "Please enter your groups in the following format:\n"
+                                      "<англ> <прогр> <укр> <матан> <дискретка> <алгебра>")
+
+    bot.register_next_step_handler(msg, enter_groups)
+
+
+def enter_groups(msg):
+    args = msg.text.split()
+    if len(args) != 6:
+        bot.send_message(msg.chat.id, "Invalid number of arguments. Please try again using /set_groups command.")
+        return
+
+    set_user_groups(msg, msg.text)
+    bot.send_message(msg.chat.id, f"Your groups have been set to: Англ: {args[0]}\n"
+                                    f"Мови програмування: {args[1]}\n"
+                                    f"Українська мова: {args[2]}\n"
+                                    f"Матан: {args[3]}\n"
+                                    f"Дискретна математика: {args[4]}\n"
+                                    f"Алгебра і геометрія: {args[5]}\n")
+    
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data.startswith("set_groups_"):
+        groups_list = call.data.split("set_groups_")[1]
+        set_user_groups(call.message, groups_list)
+        bot.send_message(call.message.chat.id, f"Your groups have been set to: {groups_list}")
 
 @bot.message_handler(commands=['schedule'])
 def schedule(msg):
@@ -175,7 +209,7 @@ def schedule(msg):
                 if user["groups_list"] is None:
                     raise ValueError("Your groups are not set. Please set them using /set_groups command.")
                 args = user["groups_list"].split()
-                if len(args) != 7:
+                if len(args) != 6:
                     raise ValueError("Your groups are not set correctly. Please set them again using /set_groups command.")
                 schedule = Schedule.get_schedule(*args, current_week=get_current_week())
                 bot.send_message(msg.chat.id, schedule)
