@@ -47,7 +47,7 @@ class Schedule:
 
         for day in cls.schedule:
             ll = day.lessons_list
-            result += f"{day.name}\n"
+            result += f"● {day.name}\n"
 
             for lesson in ll:
                 # check if lesson is a lecture or if it is for the current week
@@ -67,11 +67,12 @@ class Schedule:
 
             result += '\n'
 
+        result += f"\nРезультат за тижнем {current_week}\n"
         return result
 
     @staticmethod
     def __generate_row(lesson):
-        return f"{lesson.time}\t{lesson.name}\t\t{lesson.place}\t{lesson.teacher}\t{lesson.group}\n"
+        return f"• {lesson.time}\t{lesson.name}\t\t{lesson.place}\t{lesson.teacher}\t{lesson.group}\n"
 
 
 df = pd.read_excel("./schedules/CS_schedule.xlsx")

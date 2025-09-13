@@ -1,6 +1,8 @@
 import telebot
 from scheduler import Schedule
+import datetime
 import json
+from json import JSONDecodeError
 
 
 TOKEN = ""
@@ -8,6 +10,14 @@ with open("./TOKEN.txt", "r") as file:
     TOKEN = file.read()
 
 bot = telebot.TeleBot(token=TOKEN)
+
+
+def get_current_week():
+    """ Returns current week number based on current date """
+    start_date = datetime.datetime(2025, 9, 1)  # First day of the first semester
+    current_date = datetime.datetime.now()  # Current date
+    delta_weeks = (current_date - start_date + datetime.timedelta(days=2)).days // 7
+    return delta_weeks + 1
 
 
 def is_user_registered(msg):
@@ -56,7 +66,11 @@ def add_user(msg):
 
     with open("./users_info.json", "r") as file:
         users = json.load(file)
-    users.append(user_data)
+
+    try:
+        users.append(user_data)
+    except JSONDecodeError as e:
+        users = [user_data]
     with open("./users_info.json", "w") as file:
         json.dump(users, file)
     pass
@@ -98,10 +112,11 @@ def start(msg):
                                   "<укр> - your Ukrainian group (e.g. 7)\n"
                                   "<матан> - your Math Analysis group (e.g. 2)\n"
                                   "<дискретка> - your Discrete Math group (e.g. 2)\n"
-                                  "<алгебра> - your Algebra group (e.g. 2)\n"
-                                  "<номер_тижня> - current week number (e.g. 2)\n\n"
+                                  "<алгебра> - your Algebra group (e.g. 2)\n\n"
                                   "To get your schedule, use the command:\n"
-                                  "/schedule")
+                                  "/schedule\n\n"
+                                  "To get current date and week number, use the command:\n"
+                                  "/date\n\n")
 
 
 @bot.message_handler(commands=['remove_user'])
@@ -139,14 +154,14 @@ def remove_user(msg):
 def set_groups(msg):
     try:
         args = msg.text.split()[1:]
-        if len(args) != 7:
+        if len(args) != 6:
             raise ValueError("Invalid number of arguments")
         
         set_user_groups(msg, ' '.join(args))
         bot.send_message(msg.chat.id, "Your groups have been set successfully!")
     except Exception as e:
         bot.send_message(msg.chat.id, f"Error: {str(e)}\nPlease use the command in the correct format:\n"
-                                      "/schedule <англ> <прогр> <укр> <матан> <дискретка> <алгебра> <номер_тижня>")
+                                      "/schedule <англ> <прогр> <укр> <матан> <дискретка> <алгебра>")
         
 
 @bot.message_handler(commands=['schedule'])
@@ -162,9 +177,14 @@ def schedule(msg):
                 args = user["groups_list"].split()
                 if len(args) != 7:
                     raise ValueError("Your groups are not set correctly. Please set them again using /set_groups command.")
-                schedule = Schedule.get_schedule(*args)
+                schedule = Schedule.get_schedule(*args, current_week=get_current_week())
                 bot.send_message(msg.chat.id, schedule)
                 return
             
     except ValueError as ve:
         bot.send_message(msg.chat.id, f"Error: {str(ve)}")
+
+
+@bot.message_handler(["date"])
+def get_date(msg):
+    bot.send_message(msg.chat.id, f"Today is {datetime.date.today()}\n\nWeek number is {get_current_week()}")
