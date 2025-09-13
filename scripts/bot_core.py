@@ -100,24 +100,24 @@ def set_user_groups(msg, groups_list):
 def start(msg):
     if not is_user_registered(msg):
         add_user(msg)
-        bot.send_message(msg.chat.id, "You have been registered! Now you can set your groups using /set_groups command.")
+        bot.send_message(msg.chat.id, "Вас зареєстровано! Тепер ви можете встановити свої групи за допомогою команди /set_groups.")
 
 
-    bot.send_message(msg.chat.id, "Hello! This is a schedule bot for CS department of NaUKMA.\n"
-                                  "To set your groups permanently, use this command\n"
+    bot.send_message(msg.chat.id, "Привіт! Це бот з розкладом для ФІ КМА.\n"
+                                  "Щоб зберегти свої групи, скористайтесь командою\n"
                                   "/set_groups <англ> <прогр> <укр> <матан> <дискретка> <алгебра>\n"
-                                  "where:\n"
-                                  "<англ> - your English group (e.g. 67)(Do NOT type A in the beginning)\n"
-                                  "<прогр> - your Programming group (e.g. 3)\n"
-                                  "<укр> - your Ukrainian group (e.g. 7)\n"
-                                  "<матан> - your Math Analysis group (e.g. 2)\n"
-                                  "<дискретка> - your Discrete Math group (e.g. 2)\n"
-                                  "<алгебра> - your Algebra group (e.g. 2)\n\n"
-                                  "To get your groups, use the command:\n"
+                                  "де:\n"
+                                  "<англ> — ваша група з англійської (напр. 67) (НЕ додавайте літеру A)\n"
+                                  "<прогр> — ваша група з програмування (напр. 3)\n"
+                                  "<укр> — ваша група з української мови (напр. 7)\n"
+                                  "<матан> — ваша група з матаналізу (напр. 2)\n"
+                                  "<дискретка> — ваша група з дискретної математики (напр. 2)\n"
+                                  "<алгебра> — ваша група з алгебри і геометрії (напр. 2)\n\n"
+                                  "Щоб переглянути свої групи, скористайтесь командою:\n"
                                   "/get_groups\n\n"
-                                  "To get your schedule, use the command:\n"
+                                  "Щоб отримати свій розклад, скористайтесь командою:\n"
                                   "/schedule\n\n"
-                                  "To get current date and week number, use the command:\n"
+                                  "Щоб дізнатись поточну дату та номер тижня, скористайтесь командою:\n"
                                   "/date\n\n")
 
 
@@ -139,17 +139,17 @@ def remove_user(msg):
     users = [user for user in users if user["name"] != name]
 
     if len(users) == previous_len:
-        bot.send_message(msg.chat.id, f"User '{name}' not found.")
+        bot.send_message(msg.chat.id, f"Користувача '{name}' не знайдено.")
         return
 
     if not check_if_admin(msg.chat.id):
-        bot.send_message(msg.chat.id, "You are not authorized to use this command.")
+        bot.send_message(msg.chat.id, "У вас немає прав для використання цієї команди.")
         return
 
 
     with open("./users_info.json", "w") as file:
         json.dump(users, file)
-    bot.send_message(msg.chat.id, f"User '{name}' removed.")
+    bot.send_message(msg.chat.id, f"Користувача '{name}' видалено.")
 
 
 @bot.message_handler(commands=["get_groups"])
@@ -160,17 +160,17 @@ def get_groups(msg):
     for user in users:
         if user["chat_id"] == msg.chat.id:
             if user["groups_list"] is None:
-                bot.send_message(msg.chat.id, "Your groups are not set. Please set them using /set_groups command.")
+                bot.send_message(msg.chat.id, "Ваші групи не вказані. Будь ласка, вкажіть їх за допомогою команди /set_groups.")
                 return
-            bot.send_message(msg.chat.id, f"Your groups are: {user['groups_list']}")
+            bot.send_message(msg.chat.id, f"Ваші групи: {user['groups_list']}")
             return
 
-    bot.send_message(msg.chat.id, "You are not registered. Please use /start command to register.")
+    bot.send_message(msg.chat.id, "Ви не зареєстровані. Будь ласка, скористайтесь командою /start для реєстрації.")
     
 
 @bot.message_handler(commands=['set_groups'])
 def set_groups(msg):
-    bot.send_message(msg.chat.id, "Please enter your groups in the following format:\n"
+    bot.send_message(msg.chat.id, "Будь ласка, введіть свої групи у форматі:\n"
                                       "<англ> <прогр> <укр> <матан> <дискретка> <алгебра>")
 
     bot.register_next_step_handler(msg, enter_groups)
@@ -179,11 +179,11 @@ def set_groups(msg):
 def enter_groups(msg):
     args = msg.text.split()
     if len(args) != 6:
-        bot.send_message(msg.chat.id, "Invalid number of arguments. Please try again using /set_groups command.")
+        bot.send_message(msg.chat.id, "Неправильна кількість аргументів. Спробуйте ще раз за допомогою команди /set_groups.")
         return
 
     set_user_groups(msg, msg.text)
-    bot.send_message(msg.chat.id, f"Your groups have been set to: Англ: {args[0]}\n"
+    bot.send_message(msg.chat.id, f"Ваші групи збережено як: Англ: {args[0]}\n"
                                     f"Мови програмування: {args[1]}\n"
                                     f"Українська мова: {args[2]}\n"
                                     f"Матан: {args[3]}\n"
@@ -196,7 +196,7 @@ def callback_query(call):
     if call.data.startswith("set_groups_"):
         groups_list = call.data.split("set_groups_")[1]
         set_user_groups(call.message, groups_list)
-        bot.send_message(call.message.chat.id, f"Your groups have been set to: {groups_list}")
+        bot.send_message(call.message.chat.id, f"Ваші групи збережено як: {groups_list}")
 
 @bot.message_handler(commands=['schedule'])
 def schedule(msg):
@@ -207,18 +207,18 @@ def schedule(msg):
         for user in users:
             if user["chat_id"] == msg.chat.id:
                 if user["groups_list"] is None:
-                    raise ValueError("Your groups are not set. Please set them using /set_groups command.")
+                    raise ValueError("Ваші групи не вказані. Будь ласка, вкажіть їх за допомогою команди /set_groups.")
                 args = user["groups_list"].split()
                 if len(args) != 6:
-                    raise ValueError("Your groups are not set correctly. Please set them again using /set_groups command.")
+                    raise ValueError("Ваші групи вказані некоректно. Будь ласка, вкажіть їх знову за допомогою команди /set_groups.")
                 schedule = Schedule.get_schedule(*args, current_week=get_current_week())
                 bot.send_message(msg.chat.id, schedule)
                 return
             
     except ValueError as ve:
-        bot.send_message(msg.chat.id, f"Error: {str(ve)}")
+        bot.send_message(msg.chat.id, f"Помилка: {str(ve)}")
 
 
 @bot.message_handler(["date"])
 def get_date(msg):
-    bot.send_message(msg.chat.id, f"Today is {datetime.date.today()}\n\nWeek number is {get_current_week()}")
+    bot.send_message(msg.chat.id, f"Сьогодні {datetime.date.today()}\n\nНомер тижня: {get_current_week()}")
