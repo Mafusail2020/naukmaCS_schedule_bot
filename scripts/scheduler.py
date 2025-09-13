@@ -134,15 +134,4 @@ for i in range(len(week_schedule)): # iterate through days
         schedule[i].lessons_list.append(lesson)
 
 
-#DEBUG
-# for day in schedule:
-#     print(day.name)
-#     for les in day.lessons_list:
-#         print(les.name)
-# print(week_schedule[0])
-# for les in schedule[0]. lessons_list:
-#         print(les.name)
-
-
 Schedule.schedule = schedule
-print(Schedule.get_schedule("67", "3", "7", "2", "2", "2", "2"))
