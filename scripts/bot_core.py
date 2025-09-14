@@ -3,6 +3,7 @@ from scheduler import Schedule
 import datetime
 import json
 from json import JSONDecodeError
+from telebot import types
 
 
 TOKEN = ""
@@ -103,6 +104,16 @@ def start(msg):
         bot.send_message(msg.chat.id, "You have been registered! Now you can set your groups using /set_groups command.")
 
 
+    # Creating inline markup menu
+    rmk = telebot.types.InlineKeyboardMarkup(row_width=2)
+    set_groups_btn = telebot.types.InlineKeyboardButton(text='Set Groups', callback_data='set_groups')
+    get_groups_btn = telebot.types.InlineKeyboardButton(text='Get Groups', callback_data='get_groups')
+    get_schedule = telebot.types.InlineKeyboardButton(text="Get Schedule", callback_data='schedule')
+    get_date = telebot.types.InlineKeyboardButton(text="Get Date", callback_data='date')
+
+    rmk.add(set_groups_btn, get_groups_btn).add(get_schedule).add(get_date)
+
+
     bot.send_message(msg.chat.id, "Hello! This is a schedule bot for CS department of NaUKMA.\n"
                                   "To set your groups permanently, use this command\n"
                                   "/set_groups <англ> <прогр> <укр> <матан> <дискретка> <алгебра>\n"
@@ -118,7 +129,7 @@ def start(msg):
                                   "To get your schedule, use the command:\n"
                                   "/schedule\n\n"
                                   "To get current date and week number, use the command:\n"
-                                  "/date\n\n")
+                                  "/date\n\n", reply_markup=rmk)
 
 
 @bot.message_handler(commands=['remove_user'])
@@ -152,28 +163,30 @@ def remove_user(msg):
     bot.send_message(msg.chat.id, f"User '{name}' removed.")
 
 
-@bot.message_handler(commands=["get_groups"])
-def get_groups(msg):
+# Get user groups from table
+@bot.callback_query_handler(func=lambda call: call.data == 'get_groups')
+def get_groups(callback: types.CallbackQuery):
     with open("./users_info.json", "r") as file:
         users = json.load(file)
 
     for user in users:
-        if user["chat_id"] == msg.chat.id:
+        if user["chat_id"] == callback.message.chat.id:
             if user["groups_list"] is None:
-                bot.send_message(msg.chat.id, "Your groups are not set. Please set them using /set_groups command.")
+                bot.send_message(callback.message.chat.id, "Your groups are not set. Please set them using /set_groups command.")
                 return
-            bot.send_message(msg.chat.id, f"Your groups are: {user['groups_list']}")
+            bot.send_message(callback.message.chat.id, f"Your groups are: {user['groups_list']}")
             return
 
-    bot.send_message(msg.chat.id, "You are not registered. Please use /start command to register.")
+    bot.send_message(callback.message.chat.id, "You are not registered. Please use /start command to register.")
     
 
-@bot.message_handler(commands=['set_groups'])
-def set_groups(msg):
-    bot.send_message(msg.chat.id, "Please enter your groups in the following format:\n"
+# Set user groups
+@bot.callback_query_handler(func=lambda call: call.data == 'set_groups')
+def set_groups(callback: types.CallbackQuery):
+    bot.send_message(callback.message.chat.id, "Please enter your groups in the following format:\n"
                                       "<англ> <прогр> <укр> <матан> <дискретка> <алгебра>")
 
-    bot.register_next_step_handler(msg, enter_groups)
+    bot.register_next_step_handler(callback.message, enter_groups)
 
 
 def enter_groups(msg):
@@ -189,36 +202,31 @@ def enter_groups(msg):
                                     f"Матан: {args[3]}\n"
                                     f"Дискретна математика: {args[4]}\n"
                                     f"Алгебра і геометрія: {args[5]}\n")
-    
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data.startswith("set_groups_"):
-        groups_list = call.data.split("set_groups_")[1]
-        set_user_groups(call.message, groups_list)
-        bot.send_message(call.message.chat.id, f"Your groups have been set to: {groups_list}")
 
-@bot.message_handler(commands=['schedule'])
-def schedule(msg):
+# Return full schedule
+@bot.callback_query_handler(func=lambda call: call.data == 'schedule')
+def schedule(callback: types.CallbackQuery):
     try:
         with open("./users_info.json", "r") as file:
             users = json.load(file)
 
         for user in users:
-            if user["chat_id"] == msg.chat.id:
+            if user["chat_id"] == callback.message.chat.id:
                 if user["groups_list"] is None:
                     raise ValueError("Your groups are not set. Please set them using /set_groups command.")
                 args = user["groups_list"].split()
                 if len(args) != 6:
                     raise ValueError("Your groups are not set correctly. Please set them again using /set_groups command.")
                 schedule = Schedule.get_schedule(*args, current_week=get_current_week())
-                bot.send_message(msg.chat.id, schedule)
+                bot.send_message(callback.message.chat.id, schedule)
                 return
             
     except ValueError as ve:
-        bot.send_message(msg.chat.id, f"Error: {str(ve)}")
+        bot.send_message(callback.message.chat.id, f"Error: {str(ve)}")
 
 
-@bot.message_handler(["date"])
-def get_date(msg):
-    bot.send_message(msg.chat.id, f"Today is {datetime.date.today()}\n\nWeek number is {get_current_week()}")
+# Return date
+@bot.callback_query_handler(func=lambda call: call.data == 'date')
+def get_date(callback: types.CallbackQuery):
+    bot.send_message(callback.message.chat.id, f"Today is {datetime.date.today()}\n\nWeek number is {get_current_week()}")
