@@ -90,7 +90,7 @@ for i in range(len(week_id) - 1):
     day_schedule = df.iloc[week_id[i]:week_id[i + 1]]
     week_schedule.append(day_schedule)
 
-schedule = [Day(["Понеділок", "Вівторок", "Середа", "Четвер", "П`ятниця", "Субота"][i]) for i in range(5)] # list of all lessons in the week by days
+schedule = [Day(["Понеділок", "Вівторок", "Середа", "Четвер", "П`ятниця 🍻", "Субота"][i]) for i in range(5)] # list of all lessons in the week by days
 for i in range(len(week_schedule)): # iterate through days
     current_day = week_schedule[i]
 

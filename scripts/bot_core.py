@@ -110,17 +110,17 @@ def start(msg):
 
     # Creating inline markup menu
     rmk = telebot.types.InlineKeyboardMarkup(row_width=2)
-    set_groups_btn = telebot.types.InlineKeyboardButton(text='Set Groups', callback_data='set_groups')
-    get_groups_btn = telebot.types.InlineKeyboardButton(text='Get Groups', callback_data='get_groups')
-    get_schedule = telebot.types.InlineKeyboardButton(text="Get Schedule", callback_data='schedule')
-    get_date = telebot.types.InlineKeyboardButton(text="Get Date", callback_data='date')
+    set_groups_btn = telebot.types.InlineKeyboardButton(text='🖊️ Set Groups', callback_data='set_groups')
+    get_groups_btn = telebot.types.InlineKeyboardButton(text='📋 Get Groups', callback_data='get_groups')
+    get_schedule = telebot.types.InlineKeyboardButton(text="🗓️ Get Schedule", callback_data='schedule')
+    get_date = telebot.types.InlineKeyboardButton(text="📅 Get Date", callback_data='date')
 
     rmk.add(set_groups_btn, get_groups_btn).add(get_schedule).add(get_date)
 
 
     bot.send_message(msg.chat.id, "Hello! This is a schedule bot for CS department of NaUKMA.\n"
-                                  "To set your groups permanently, use this command\n"
-                                  "/set_groups <англ> <прогр> <укр> <матан> <дискретка> <алгебра>\n"
+                                  "To set your groups permanently, use command Set Groups\n"
+                                  "Example: 50 3 7 2 2 2\n"
                                   "where:\n"
                                   "<англ> - your English group (e.g. 67)(Do NOT type A in the beginning)\n"
                                   "<прогр> - your Programming group (e.g. 3)\n"
@@ -128,12 +128,9 @@ def start(msg):
                                   "<матан> - your Math Analysis group (e.g. 2)\n"
                                   "<дискретка> - your Discrete Math group (e.g. 2)\n"
                                   "<алгебра> - your Algebra group (e.g. 2)\n\n"
-                                  "To get your groups, use the command:\n"
-                                  "/get_groups\n\n"
-                                  "To get your schedule, use the command:\n"
-                                  "/schedule\n\n"
-                                  "To get current date and week number, use the command:\n"
-                                  "/date\n\n", reply_markup=rmk)
+                                  "To get your groups, use the command Get Groups\n\n"
+                                  "To get your schedule for this week, use the command Get Schedule\n\n"
+                                  "To get current date and week number, use the command Get Date\n\n", reply_markup=rmk)
 
 
 @bot.message_handler(commands=['remove_user'])
