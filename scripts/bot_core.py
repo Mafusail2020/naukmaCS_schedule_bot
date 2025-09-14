@@ -13,6 +13,10 @@ with open("./TOKEN.txt", "r") as file:
 bot = telebot.TeleBot(token=TOKEN)
 
 
+# Global variables
+ENG_BIAS = 8  # Англ groups are shifted by 8 in the schedule
+
+
 def get_current_week():
     """ Returns current week number based on current date """
     start_date = datetime.datetime(2025, 9, 1)  # First day of the first semester
@@ -166,6 +170,8 @@ def remove_user(msg):
 # Get user groups from table
 @bot.callback_query_handler(func=lambda call: call.data == 'get_groups')
 def get_groups(callback: types.CallbackQuery):
+    global ENG_BIAS
+
     with open("./users_info.json", "r") as file:
         users = json.load(file)
 
@@ -174,7 +180,9 @@ def get_groups(callback: types.CallbackQuery):
             if user["groups_list"] is None:
                 bot.send_message(callback.message.chat.id, "Your groups are not set. Please set them using /set_groups command.")
                 return
-            bot.send_message(callback.message.chat.id, f"Your groups are: {user['groups_list']}")
+            user_groups = user["groups_list"].split()
+            user_groups[0] = str(int(user_groups[0]) - ENG_BIAS)  # Поправка на збитий розклад Англ
+            bot.send_message(callback.message.chat.id, f"Your groups are: {" ".join(user_groups)}")
             return
 
     bot.send_message(callback.message.chat.id, "You are not registered. Please use /start command to register.")
@@ -190,18 +198,24 @@ def set_groups(callback: types.CallbackQuery):
 
 
 def enter_groups(msg):
+    global ENG_BIAS
+
     args = msg.text.split()
     if len(args) != 6:
         bot.send_message(msg.chat.id, "Invalid number of arguments. Please try again using /set_groups command.")
         return
-
-    set_user_groups(msg, msg.text)
+    
     bot.send_message(msg.chat.id, f"Your groups have been set to: Англ: {args[0]}\n"
                                     f"Мови програмування: {args[1]}\n"
                                     f"Українська мова: {args[2]}\n"
                                     f"Матан: {args[3]}\n"
                                     f"Дискретна математика: {args[4]}\n"
                                     f"Алгебра і геометрія: {args[5]}\n")
+
+    args[0] = str(int(args[0]) + ENG_BIAS)  # Англ
+    args = ' '.join(args)
+
+    set_user_groups(msg, args)
 
 
 # Return full schedule
