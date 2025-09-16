@@ -1,16 +1,16 @@
-import telebot
 from scheduler import Schedule
 import datetime
 import json
 from json import JSONDecodeError
-from telebot import types
+from aiogram import types, Dispatcher, Bot, excecutor
 
 
 TOKEN = ""
 with open("./TOKEN.txt", "r") as file:
     TOKEN = file.read()
 
-bot = telebot.TeleBot(token=TOKEN)
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
 
 
 # Global variables
