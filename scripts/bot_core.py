@@ -3,12 +3,10 @@ import datetime
 import json
 from json import JSONDecodeError
 from aiogram import types, Dispatcher, Bot, excecutor
+import config
 
 
-TOKEN = ""
-with open("./TOKEN.txt", "r") as file:
-    TOKEN = file.read()
-
+TOKEN = config.TOKEN
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
